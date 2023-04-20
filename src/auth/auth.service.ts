@@ -1,11 +1,12 @@
 /* eslint-disable prettier/prettier */
 // services are responsible for handling the business logic
 // services are annotated with the Injectable decorator
-
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 
-@Injectable({})
+@Injectable()
 export class AuthService {
+  constructor(private prisma: PrismaService) {}
   signin() {
     return { msg: 'I have signed in' };
   }

@@ -1,13 +1,17 @@
 // controllers are responsible for handling incoming requests and returning responses to the client
-import { Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthDto } from './dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signup')
-  signup() {
+  signup(@Body() dto: AuthDto) {
+    // the @Req() decorator helps us to access the request object, it comes from express
+    // but it is not advisable to use the request object directly, so instead, we can use the @Body() decorator
+    console.log(dto);
     return this.authService.signup();
   }
 
