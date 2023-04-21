@@ -15,8 +15,8 @@ export class AuthController {
   }
 
   @Post('signin')
-  signin() {
-    return this.authService.signin();
+  signin(@Body() dto: AuthDto) {
+    return this.authService.signin(dto);
   }
 }
 // the controller will need to call the service, but to do so, it will need to instantiate an AuthService object

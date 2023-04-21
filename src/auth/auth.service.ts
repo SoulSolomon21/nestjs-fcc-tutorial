@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 // services are responsible for handling the business logic
 // services are annotated with the Injectable decorator
 import { Injectable } from '@nestjs/common';
@@ -10,10 +9,7 @@ import { ForbiddenException } from '@nestjs/common/exceptions';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) { }
-  signin() {
-    return { msg: 'I have signed in' };
-  }
+  constructor(private prisma: PrismaService) {}
 
   async signup(dto: AuthDto) {
     // generate the password hash
@@ -25,8 +21,8 @@ export class AuthService {
         data: {
           email: dto.email,
           hash,
-        }
-      })
+        },
+      });
 
       // this is going to delete the hash property from the user object
       delete user.hash;
@@ -36,11 +32,33 @@ export class AuthService {
       // this checks if the error comes from Prisma
       if (error instanceof PrismaClientKnownRequestError) {
         // this error code comes from prisma and indicates that the error is a prisma duplicate field error
-        if (error.code === "P2002") {
-          throw new ForbiddenException('Credentials Taken')
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('Credentials Taken');
         }
       }
     }
+  }
+
+  async signin(dto: AuthDto) {
+    // find user by email
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: dto.email,
+      },
+    });
+
+    // if user does not exist, throw exception
+    if (!user) throw new ForbiddenException('Credentials incorrect');
+
+    // compare passwords
+    const pwMatches = await argon.verify(user.hash, dto.password);
+
+    // if password is incorect throw exception
+    if (!pwMatches) throw new ForbiddenException('Credentials Incorrect');
+
+    // send back the user
+    delete user.hash;
+    return user;
   }
 }
 // the Injectable decorator means that the class is going to be able to use the dependency injections that
