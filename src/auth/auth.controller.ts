@@ -11,8 +11,7 @@ export class AuthController {
   signup(@Body() dto: AuthDto) {
     // the @Req() decorator helps us to access the request object, it comes from express
     // but it is not advisable to use the request object directly, so instead, we can use the @Body() decorator
-    console.log(dto);
-    return this.authService.signup();
+    return this.authService.signup(dto);
   }
 
   @Post('signin')
