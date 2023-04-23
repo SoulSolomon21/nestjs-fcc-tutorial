@@ -6,10 +6,11 @@ import { AuthDto } from './dto';
 import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { ForbiddenException } from '@nestjs/common/exceptions';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private jwt: JwtService) {}
 
   async signup(dto: AuthDto) {
     // generate the password hash
@@ -36,6 +37,7 @@ export class AuthService {
           throw new ForbiddenException('Credentials Taken');
         }
       }
+      throw error;
     }
   }
 
@@ -59,6 +61,17 @@ export class AuthService {
     // send back the user
     delete user.hash;
     return user;
+  }
+
+  async signToken(userId: number, email: string) {
+    const payLoad = {
+      sub: userId,
+      email,
+    };
+
+    return this.jwt.signAsync(payLoad, {
+      expiresIn: '12h',
+    });
   }
 }
 // the Injectable decorator means that the class is going to be able to use the dependency injections that
