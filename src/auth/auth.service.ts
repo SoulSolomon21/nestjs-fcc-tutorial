@@ -7,10 +7,15 @@ import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { ForbiddenException } from '@nestjs/common/exceptions';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwt: JwtService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwt: JwtService,
+    private config: ConfigService,
+  ) {}
 
   async signup(dto: AuthDto) {
     // generate the password hash
@@ -25,10 +30,7 @@ export class AuthService {
         },
       });
 
-      // this is going to delete the hash property from the user object
-      delete user.hash;
-      // return the user
-      return user;
+      return this.signToken(user.id, user.email);
     } catch (error) {
       // this checks if the error comes from Prisma
       if (error instanceof PrismaClientKnownRequestError) {
@@ -59,19 +61,28 @@ export class AuthService {
     if (!pwMatches) throw new ForbiddenException('Credentials Incorrect');
 
     // send back the user
-    delete user.hash;
-    return user;
+    return this.signToken(user.id, user.email);
   }
 
-  async signToken(userId: number, email: string) {
+  async signToken(
+    userId: number,
+    email: string,
+  ): Promise<{ access_token: string }> {
     const payLoad = {
       sub: userId,
       email,
     };
+    const secret = this.config.get('JWT_SECRET');
 
-    return this.jwt.signAsync(payLoad, {
+    const token = await this.jwt.signAsync(payLoad, {
       expiresIn: '12h',
+      secret: secret,
     });
+
+    // once we give the token to a user, the user can use the platform for the specified time before they need to sign in again
+    return {
+      access_token: token,
+    };
   }
 }
 // the Injectable decorator means that the class is going to be able to use the dependency injections that
