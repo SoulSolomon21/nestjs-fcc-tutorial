@@ -64,6 +64,7 @@ export class AuthService {
     return this.signToken(user.id, user.email);
   }
 
+  // this function will be used to sign the jwt token that will be returned to the user as they make requests
   async signToken(
     userId: number,
     email: string,
